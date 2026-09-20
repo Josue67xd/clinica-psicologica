@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Gestión de servicios, agenda y estadísticas de clínica psicológica">
+  <title>Clínica Psicológica · Sistema de gestión</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%230f4c81'/%3E%3Cpath d='M19 36c8 0 8-15 17-15 6 0 10 5 10 11 0 8-6 13-14 13-8 0-13-4-13-9Z' fill='none' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section class="gate" id="gate">
+    <div class="gate-card">
+      <div class="logo">CP</div>
+      <p class="kicker">Sistema de gestión</p>
+      <h1>Clínica Psicológica</h1>
+      <p id="gateText">Inicia sesión para consultar y registrar información desde cualquier dispositivo.</p>
+      <button class="btn primary wide" id="signInBtn">Continuar con Google</button>
+      <button class="text-btn" id="setupBtn">Configurar Firebase</button>
+      <p class="micro">Versión 1.0 · Los datos clínicos no se guardan en este dispositivo.</p>
+    </div>
+  </section>
+
+  <div class="app hidden" id="app">
+    <aside>
+      <div class="brand"><div class="logo small">CP</div><div><strong>Clínica Psicológica</strong><small>Gestión de servicios</small></div></div>
+      <nav id="sideNav">
+        <button class="nav active" data-page="inicio"><span>⌂</span>Inicio</button>
+        <button class="nav" data-page="agenda"><span>▦</span>Agenda</button>
+        <button class="nav" data-page="servicios"><span>＋</span>Servicios</button>
+        <button class="nav" data-page="pacientes"><span>♙</span>Pacientes</button>
+        <button class="nav" data-page="psicometria"><span>◇</span>Psicometría</button>
+        <button class="nav" data-page="historial"><span>▤</span>Historial</button>
+        <button class="nav" data-page="estadisticas"><span>▥</span>Estadísticas</button>
+      </nav>
+      <div class="side-bottom"><span id="syncState">● Sincronizado</span><button id="signOutBtn">Cerrar sesión</button></div>
+    </aside>
+    <main>
+      <header><div><p class="kicker" id="dateLabel"></p><h1 id="pageTitle">Resumen general</h1></div><div class="user"><div class="avatar" id="avatar">PS</div><div><strong id="userName">Profesional</strong><small id="userEmail"></small></div></div></header>
+      <div id="content" aria-live="polite"></div>
+    </main>
+    <nav class="mobile-nav"><button class="nav active" data-page="inicio"><span>⌂</span>Inicio</button><button class="nav" data-page="agenda"><span>▦</span>Agenda</button><button class="nav" data-page="servicios"><span>＋</span>Registrar</button><button class="nav" data-page="pacientes"><span>♙</span>Pacientes</button><button class="nav" data-page="estadisticas"><span>▥</span>Datos</button></nav>
+  </div>
+
+  <div class="modal" id="modal"><div class="modal-box"><button class="modal-close" data-close>×</button><div id="modalBody"></div></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
