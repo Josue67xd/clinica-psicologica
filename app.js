@@ -1,4 +1,4 @@
-import{initialize,isConfigured,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,listCalendarEvents,calendarConnected,user}from'./store.js';
+import{initialize,isConfigured,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,listCalendarEvents,calendarConnected,user}from'./store.js?v=1.4';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={page:'inicio',patients:[],services:[],psychometrics:[],loading:false};
@@ -25,7 +25,7 @@ async function boot(){
 }
 function showGate(text,setup=false){$('#gate').classList.remove('hidden');$('#app').classList.add('hidden');$('#gateText').textContent=text;$('#signInBtn').classList.toggle('hidden',setup)}
 function showApp(u){$('#gate').classList.add('hidden');$('#app').classList.remove('hidden');$('#userName').textContent=u.displayName||'Profesional';$('#userEmail').textContent=u.email||'';$('#avatar').textContent=initials(u.displayName);render()}
-$('#signInBtn').onclick=async()=>{try{await signIn(false)}catch(e){console.error(e);toast('No se pudo iniciar sesión')}};
+$('#signInBtn').onclick=async()=>{const button=$('#signInBtn'),original=button.innerHTML;button.disabled=true;button.textContent='Abriendo acceso de Google…';try{await signIn(false)}catch(e){console.error(e);const messages={'auth/popup-closed-by-user':'Se cerró la ventana de Google antes de terminar.','auth/unauthorized-domain':'Este sitio todavía no está autorizado en Firebase.','auth/network-request-failed':'No se pudo conectar con Google. Revisa tu conexión.'};toast(messages[e?.code]||`No se pudo iniciar sesión${e?.code?` (${e.code})`:''}`)}finally{button.disabled=false;button.innerHTML=original}};
 $('#signOutBtn').onclick=()=>logOut();
 
 async function loadAll(){state.loading=true;render();try{[state.services,state.patients,state.psychometrics]=await Promise.all([listRecords('services'),listRecords('patients'),listRecords('psychometrics')]);$('#syncState').textContent='● Sincronizado'}catch(e){console.error(e);if(e?.code==='permission-denied'){await logOut();showGate('Esta cuenta no está autorizada. Utiliza el correo asignado a la clínica.');return}$('#syncState').textContent='● Error de conexión';toast('No se pudieron cargar los datos')}finally{state.loading=false;render()}}
