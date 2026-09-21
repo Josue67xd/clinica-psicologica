@@ -1,8 +1,12 @@
-import{initialize,isConfigured,getSavedConfig,saveConfig,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,user}from'./store.js';
+import{initialize,isConfigured,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,user}from'./store.js';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={page:'inicio',patients:[],services:[],psychometrics:[],loading:false};
-const titles={inicio:'Resumen general',agenda:'Agenda',servicios:'Registrar servicio',pacientes:'Pacientes',psicometria:'Psicometría',historial:'Historial de servicios',estadisticas:'Estadísticas'};
+const titles={inicio:'Resumen general',agenda:'Agenda',servicios:'Registrar servicio',pacientes:'Pacientes',psicometria:'Psicometría',historial:'Historial de servicios',estadisticas:'Estadísticas',configuracion:'Configuración'};
+const THEME_KEY='clinica_theme_v1';
+function selectedTheme(){return localStorage.getItem(THEME_KEY)||'system'}
+function applyTheme(theme=selectedTheme()){const dark=theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=dark?'dark':'light'}
+applyTheme();matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(selectedTheme()==='system')applyTheme()});
 const serviceLabels={session:'Sesión psicológica',workshop:'Taller o capacitación',crisis:'Intervención en crisis',activity:'Actividad institucional',followup:'Seguimiento telefónico'};
 const statusClass=s=>s==='Realizado'||s==='Realizada'||s==='Entregado'?'done':s==='Cancelado'||s==='Cancelada'||s==='Ausencia'?'cancel':s==='Emergencia'?'warn':'';
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -15,22 +19,18 @@ document.addEventListener('click',e=>{if(e.target.matches('[data-close]')||e.tar
 
 async function boot(){
   $('#dateLabel').textContent=new Intl.DateTimeFormat('es-GT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
-  if(!isConfigured()){showGate('Primero configura Firebase. Solo tendrás que hacerlo una vez.',true);return}
+  if(!isConfigured()){showGate('La conexión segura no está disponible. Contacta al administrador.');return}
   try{await initialize();onUser(async u=>{if(!u){showGate('Inicia sesión para consultar y registrar información desde cualquier dispositivo.');return}showApp(u);await loadAll()})}catch(error){console.error(error);showGate('La configuración no pudo iniciarse. Revísala e intenta de nuevo.',true)}
 }
 function showGate(text,setup=false){$('#gate').classList.remove('hidden');$('#app').classList.add('hidden');$('#gateText').textContent=text;$('#signInBtn').classList.toggle('hidden',setup)}
 function showApp(u){$('#gate').classList.add('hidden');$('#app').classList.remove('hidden');$('#userName').textContent=u.displayName||'Profesional';$('#userEmail').textContent=u.email||'';$('#avatar').textContent=initials(u.displayName);render()}
 $('#signInBtn').onclick=async()=>{try{await signIn(false)}catch(e){console.error(e);toast('No se pudo iniciar sesión')}};
 $('#signOutBtn').onclick=()=>logOut();
-$('#setupBtn').onclick=showSetup;
-function showSetup(){const c=getSavedConfig()||{};openModal(`<p class="kicker">Configuración inicial</p><h2>Conectar Firebase</h2><p>En Firebase Console abre Configuración del proyecto → Tus apps → Aplicación web y copia cada valor.</p><form id="setupForm" class="form-grid">
-${[['apiKey','API key'],['authDomain','Auth domain'],['projectId','Project ID'],['storageBucket','Storage bucket'],['messagingSenderId','Messaging sender ID'],['appId','App ID']].map(([k,l])=>`<div class="field ${k==='apiKey'||k==='appId'?'full':''}"><label>${l}</label><input name="${k}" required value="${esc(c[k]||'')}"></div>`).join('')}
-<div class="form-actions field full"><button type="button" class="btn" data-close>Cancelar</button><button class="btn primary">Guardar y continuar</button></div></form>`);$('#setupForm').onsubmit=e=>{e.preventDefault();saveConfig(Object.fromEntries(new FormData(e.currentTarget)));location.reload()}}
 
 async function loadAll(){state.loading=true;render();try{[state.services,state.patients,state.psychometrics]=await Promise.all([listRecords('services'),listRecords('patients'),listRecords('psychometrics')]);$('#syncState').textContent='● Sincronizado'}catch(e){console.error(e);$('#syncState').textContent='● Error de conexión';toast('No se pudieron cargar los datos')}finally{state.loading=false;render()}}
 function navigate(page){state.page=page;$('#pageTitle').textContent=titles[page];$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render();scrollTo({top:0,behavior:'smooth'})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)navigate(b.dataset.page)});
-function render(){if($('#app').classList.contains('hidden'))return;const el=$('#content');if(state.loading){el.innerHTML='<div class="card empty">Cargando información…</div>';return}el.innerHTML=({inicio:renderHome,agenda:renderAgenda,servicios:renderServices,pacientes:renderPatients,psicometria:renderPsychometrics,historial:renderHistory,estadisticas:renderStats}[state.page])();bindPage()}
+function render(){if($('#app').classList.contains('hidden'))return;const el=$('#content');if(state.loading){el.innerHTML='<div class="card empty">Cargando información…</div>';return}el.innerHTML=({inicio:renderHome,agenda:renderAgenda,servicios:renderServices,pacientes:renderPatients,psicometria:renderPsychometrics,historial:renderHistory,estadisticas:renderStats,configuracion:renderSettings}[state.page])();bindPage()}
 
 function monthItems(items,dateKey='date'){const now=new Date(),m=now.getMonth(),y=now.getFullYear();return items.filter(x=>{const d=new Date(`${x[dateKey]}T12:00:00`);return d.getMonth()===m&&d.getFullYear()===y})}
 function counts(){const all=monthItems(state.services),by=t=>all.filter(x=>x.type===t);return{all:all.length,sessions:by('session').length,patients:new Set(by('session').map(x=>x.patientId).filter(Boolean)).size,followups:by('followup').length,workshops:by('workshop').length,crises:by('crisis').length,activities:by('activity').length,psych:monthItems(state.psychometrics,'evaluationDate').length}}
@@ -66,7 +66,11 @@ function rowActions(kind,id){return`<div class="actions"><button class="icon-btn
 
 function renderStats(){const c=counts(),items=[['Sesiones',c.sessions,'session'],['Seguimientos',c.followups,'followup'],['Talleres',c.workshops,'workshop'],['Intervenciones en crisis',c.crises,'crisis'],['Actividades',c.activities,'activity'],['Psicometría',c.psych,'psych'],['Pacientes activos',state.patients.filter(x=>x.status!=='Inactivo').length,'patients']];return`<section class="card"><div class="section-head"><div><p class="kicker">Análisis del mes</p><h2>Estadísticas</h2></div><button class="btn soft" id="exportBtn">⇩ Exportar</button></div><div class="stats">${items.map(([n,v,k])=>`<article class="stat"><small>${n}</small><strong>${v}</strong><button data-stat="${k}">Ver detalle</button></article>`).join('')}</div></section>`}
 
+function renderSettings(){const theme=selectedTheme();return`<section class="card"><p class="kicker">Preferencias personales</p><h2>Apariencia</h2><p style="color:var(--muted)">Elige cómo quieres ver el sistema en este dispositivo.</p><div class="settings-grid">${[['light','Claro'],['dark','Oscuro'],['system','Usar el sistema']].map(([value,label])=>`<button class="theme-option ${theme===value?'active':''}" data-theme-option="${value}"><div class="theme-preview ${value}"></div><strong>${label}</strong></button>`).join('')}</div></section><section class="card" style="margin-top:18px"><p class="kicker">Cuenta</p><h2>Acceso y seguridad</h2><div class="setting-row"><div><strong>Cuenta activa</strong><p>${esc(user()?.email||'')}</p></div><span class="badge done">Autorizada</span></div><div class="setting-row"><div><strong>Sesión de Google</strong><p>Tu identidad protege el acceso a la información clínica.</p></div><button class="btn" id="settingsSignOut">Cerrar sesión</button></div></section>`}
+
 function bindPage(){
+  $$('[data-theme-option]').forEach(b=>b.onclick=()=>{localStorage.setItem(THEME_KEY,b.dataset.themeOption);applyTheme();render();toast('Apariencia actualizada')});
+  $('#settingsSignOut')?.addEventListener('click',()=>logOut());
   $$('[data-type]').forEach(b=>b.onclick=()=>{$$('[data-type]').forEach(x=>x.classList.toggle('active',x===b));$('#serviceFormWrap').innerHTML=serviceForm(b.dataset.type);bindServiceForm()});bindServiceForm();
   $('#addPatient')?.addEventListener('click',()=>{openModal(patientForm());bindPatientForm()});$('#addPsych')?.addEventListener('click',()=>{openModal(psychForm());bindPsychForm()});
   $('#calendarAuth')?.addEventListener('click',async()=>{try{await signIn(true);toast('Google Calendar conectado para esta sesión')}catch(e){console.error(e);toast('No se pudo autorizar Google Calendar')}});

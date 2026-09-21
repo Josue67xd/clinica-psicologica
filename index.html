@@ -10,14 +10,22 @@
 </head>
 <body>
   <section class="gate" id="gate">
-    <div class="gate-card">
-      <div class="logo">CP</div>
-      <p class="kicker">Sistema de gestión</p>
-      <h1>Clínica Psicológica</h1>
-      <p id="gateText">Inicia sesión para consultar y registrar información desde cualquier dispositivo.</p>
-      <button class="btn primary wide" id="signInBtn">Continuar con Google</button>
-      <button class="text-btn" id="setupBtn">Configurar Firebase</button>
-      <p class="micro">Versión 1.0 · Los datos clínicos no se guardan en este dispositivo.</p>
+    <div class="gate-shell">
+      <div class="gate-intro">
+        <div class="gate-mark">CP</div>
+        <p class="eyebrow">Gestión clínica segura</p>
+        <h1>Todo el trabajo de la clínica, en un solo lugar.</h1>
+        <p>Organiza pacientes, sesiones, actividades, evaluaciones y estadísticas desde cualquier dispositivo.</p>
+        <div class="gate-points"><span>✓ Información sincronizada</span><span>✓ Acceso privado con Google</span><span>✓ Reportes listos para Excel</span></div>
+      </div>
+      <div class="gate-card">
+        <div class="logo">CP</div>
+        <p class="kicker">Bienvenida</p>
+        <h2>Clínica Psicológica</h2>
+        <p id="gateText">Inicia sesión con una cuenta autorizada para continuar.</p>
+        <button class="btn google wide" id="signInBtn"><span class="google-g">G</span> Continuar con Google</button>
+        <p class="privacy-note">🔒 Acceso restringido. La información se protege en la nube y no queda guardada en este dispositivo.</p>
+      </div>
     </div>
   </section>
 
@@ -32,6 +40,7 @@
         <button class="nav" data-page="psicometria"><span>◇</span>Psicometría</button>
         <button class="nav" data-page="historial"><span>▤</span>Historial</button>
         <button class="nav" data-page="estadisticas"><span>▥</span>Estadísticas</button>
+        <button class="nav" data-page="configuracion"><span>⚙</span>Configuración</button>
       </nav>
       <div class="side-bottom"><span id="syncState">● Sincronizado</span><button id="signOutBtn">Cerrar sesión</button></div>
     </aside>
