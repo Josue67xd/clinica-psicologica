@@ -49,3 +49,17 @@ export async function createCalendarEvent(record){
   if(!response.ok)throw new Error(`CALENDAR_${response.status}`);
   return response.json();
 }
+
+export async function listCalendarEvents({monthsBack=12,monthsAhead=12}={}){
+  if(!currentToken)await signIn(true);
+  if(!currentToken)throw new Error('CALENDAR_AUTH_REQUIRED');
+  const now=new Date(),timeMin=new Date(now),timeMax=new Date(now);
+  timeMin.setMonth(timeMin.getMonth()-monthsBack);timeMax.setMonth(timeMax.getMonth()+monthsAhead);
+  const params=new URLSearchParams({timeMin:timeMin.toISOString(),timeMax:timeMax.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'2500'});
+  const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,{headers:{Authorization:`Bearer ${currentToken}`}});
+  if(response.status===401){currentToken=null;throw new Error('CALENDAR_TOKEN_EXPIRED')}
+  if(!response.ok)throw new Error(`CALENDAR_${response.status}`);
+  const data=await response.json();return(data.items||[]).filter(x=>x.status!=='cancelled');
+}
+
+export function calendarConnected(){return Boolean(currentToken)}
