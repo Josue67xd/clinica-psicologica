@@ -34,7 +34,7 @@ function requireUser(){const u=user();if(!u)throw new Error('AUTH_REQUIRED');ret
 function clean(value){if(value===undefined)return null;if(Array.isArray(value))return value.map(clean);if(value&&typeof value==='object'&&!(value instanceof Date))return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,clean(v)]));return value}
 
 export async function createRecord(kind,data){const u=requireUser();const ref=await sdk.addDoc(sdk.collection(db,kind),{...clean(data),ownerId:u.uid,createdAt:sdk.serverTimestamp(),updatedAt:sdk.serverTimestamp()});return{id:ref.id,...data}}
-export async function listRecords(kind){const u=requireUser();const snap=await sdk.getDocs(sdk.query(sdk.collection(db,kind),sdk.where('ownerId','==',u.uid)));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||b.createdAt?.seconds||'').localeCompare(String(a.date||a.createdAt?.seconds||'')))}
+export async function listRecords(kind){requireUser();const snap=await sdk.getDocs(sdk.collection(db,kind));return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||b.createdAt?.seconds||'').localeCompare(String(a.date||a.createdAt?.seconds||'')))}
 export async function updateRecord(kind,id,data){requireUser();await sdk.updateDoc(sdk.doc(db,kind,id),{...clean(data),updatedAt:sdk.serverTimestamp()})}
 export async function deleteRecord(kind,id){requireUser();await sdk.deleteDoc(sdk.doc(db,kind,id))}
 

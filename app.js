@@ -20,14 +20,14 @@ document.addEventListener('click',e=>{if(e.target.matches('[data-close]')||e.tar
 async function boot(){
   $('#dateLabel').textContent=new Intl.DateTimeFormat('es-GT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
   if(!isConfigured()){showGate('La conexión segura no está disponible. Contacta al administrador.');return}
-  try{await initialize();onUser(async u=>{if(!u){showGate('Inicia sesión para consultar y registrar información desde cualquier dispositivo.');return}showApp(u);await loadAll()})}catch(error){console.error(error);showGate('La configuración no pudo iniciarse. Revísala e intenta de nuevo.',true)}
+  try{await initialize();onUser(async u=>{if(!u){showGate('Inicia sesión con una cuenta autorizada para continuar.');return}showApp(u);await loadAll()})}catch(error){console.error(error);showGate('No fue posible conectar con el sistema. Intenta de nuevo más tarde.')}
 }
 function showGate(text,setup=false){$('#gate').classList.remove('hidden');$('#app').classList.add('hidden');$('#gateText').textContent=text;$('#signInBtn').classList.toggle('hidden',setup)}
 function showApp(u){$('#gate').classList.add('hidden');$('#app').classList.remove('hidden');$('#userName').textContent=u.displayName||'Profesional';$('#userEmail').textContent=u.email||'';$('#avatar').textContent=initials(u.displayName);render()}
 $('#signInBtn').onclick=async()=>{try{await signIn(false)}catch(e){console.error(e);toast('No se pudo iniciar sesión')}};
 $('#signOutBtn').onclick=()=>logOut();
 
-async function loadAll(){state.loading=true;render();try{[state.services,state.patients,state.psychometrics]=await Promise.all([listRecords('services'),listRecords('patients'),listRecords('psychometrics')]);$('#syncState').textContent='● Sincronizado'}catch(e){console.error(e);$('#syncState').textContent='● Error de conexión';toast('No se pudieron cargar los datos')}finally{state.loading=false;render()}}
+async function loadAll(){state.loading=true;render();try{[state.services,state.patients,state.psychometrics]=await Promise.all([listRecords('services'),listRecords('patients'),listRecords('psychometrics')]);$('#syncState').textContent='● Sincronizado'}catch(e){console.error(e);if(e?.code==='permission-denied'){await logOut();showGate('Esta cuenta no está autorizada. Utiliza el correo asignado a la clínica.');return}$('#syncState').textContent='● Error de conexión';toast('No se pudieron cargar los datos')}finally{state.loading=false;render()}}
 function navigate(page){state.page=page;$('#pageTitle').textContent=titles[page];$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render();scrollTo({top:0,behavior:'smooth'})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)navigate(b.dataset.page)});
 function render(){if($('#app').classList.contains('hidden'))return;const el=$('#content');if(state.loading){el.innerHTML='<div class="card empty">Cargando información…</div>';return}el.innerHTML=({inicio:renderHome,agenda:renderAgenda,servicios:renderServices,pacientes:renderPatients,psicometria:renderPsychometrics,historial:renderHistory,estadisticas:renderStats,configuracion:renderSettings}[state.page])();bindPage()}
