@@ -9,13 +9,16 @@ export function isConfigured(){const c=getSavedConfig();return Boolean(c?.apiKey
 
 export async function initialize(){
   if(!isConfigured())return false;
-  const [{initializeApp},{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged},{getFirestore,collection,addDoc,getDocs,query,where,serverTimestamp,doc,updateDoc,deleteDoc}]=await Promise.all([
+  const [{initializeApp},{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signOut,onAuthStateChanged},{getFirestore,collection,addDoc,getDocs,query,where,serverTimestamp,doc,updateDoc,deleteDoc}]=await Promise.all([
     import('https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js'),
     import('https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js'),
     import('https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js')
   ]);
-  sdk={GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,collection,addDoc,getDocs,query,where,serverTimestamp,doc,updateDoc,deleteDoc};
-  app=initializeApp(getSavedConfig());auth=getAuth(app);db=getFirestore(app);return true;
+  sdk={GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signOut,onAuthStateChanged,collection,addDoc,getDocs,query,where,serverTimestamp,doc,updateDoc,deleteDoc};
+  app=initializeApp(getSavedConfig());auth=getAuth(app);db=getFirestore(app);
+  const redirectResult=await sdk.getRedirectResult(auth);
+  if(redirectResult)currentToken=sdk.GoogleAuthProvider.credentialFromResult(redirectResult)?.accessToken||null;
+  return true;
 }
 
 export function onUser(callback){if(!auth){callback(null);return()=>{}}return sdk.onAuthStateChanged(auth,callback)}
@@ -23,9 +26,18 @@ export async function signIn(withCalendar=false){
   if(!auth)throw new Error('CONFIG_REQUIRED');
   const provider=new sdk.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
   if(withCalendar)provider.addScope('https://www.googleapis.com/auth/calendar.events');
-  const result=await sdk.signInWithPopup(auth,provider);
-  if(withCalendar)currentToken=sdk.GoogleAuthProvider.credentialFromResult(result)?.accessToken||null;
-  return result.user;
+  try{
+    const result=await sdk.signInWithPopup(auth,provider);
+    if(withCalendar)currentToken=sdk.GoogleAuthProvider.credentialFromResult(result)?.accessToken||null;
+    return result.user;
+  }catch(error){
+    const redirectCodes=['auth/popup-blocked','auth/cancelled-popup-request','auth/operation-not-supported-in-this-environment'];
+    if(redirectCodes.includes(error?.code)){
+      await sdk.signInWithRedirect(auth,provider);
+      return null;
+    }
+    throw error;
+  }
 }
 export async function logOut(){if(auth)await sdk.signOut(auth)}
 export function user(){return auth?.currentUser||null}
