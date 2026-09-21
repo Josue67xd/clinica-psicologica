@@ -22,11 +22,11 @@ export async function initialize(){
 }
 
 export function onUser(callback){if(!auth){callback(null);return()=>{}}return sdk.onAuthStateChanged(auth,callback)}
-export async function signIn(withCalendar=false){
+export async function signIn(withCalendar=false,mode='redirect'){
   if(!auth)throw new Error('CONFIG_REQUIRED');
   const provider=new sdk.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
   if(withCalendar)provider.addScope('https://www.googleapis.com/auth/calendar.events');
-  if(!withCalendar){
+  if(!withCalendar&&mode!=='popup'){
     await sdk.signInWithRedirect(auth,provider);
     return null;
   }

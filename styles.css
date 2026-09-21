@@ -149,6 +149,7 @@ html[data-theme="dark"] .card,html[data-theme="dark"] .user,html[data-theme="dar
 .login-symbol span:before{content:"";position:absolute;width:12px;height:10px;border:3px solid var(--blue);border-bottom:0;border-radius:9px 9px 0 0;left:2px;top:-11px}
 .login-card h1{margin:5px 0 10px;font-size:2rem;letter-spacing:-.045em}.login-card>p{color:var(--muted)}
 .login-card .google{margin-top:24px;background:var(--blue);border-color:var(--blue);color:#fff}.login-divider{height:1px;background:var(--line);margin:26px 0 18px}.login-card .privacy-note{margin:0!important;color:var(--muted);font-size:.78rem}
+.login-alternative{margin-top:12px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.login-alternative:hover{color:var(--blue)}.login-alternative:disabled{opacity:.6;cursor:wait}
 .side-bottom{gap:13px}.side-bottom .settings-nav{width:100%;padding:10px 8px;text-align:left;color:#c8dbe8;border-bottom:1px solid #ffffff18;border-radius:9px;margin-bottom:2px}.side-bottom .settings-nav:hover,.side-bottom .settings-nav.active{background:#ffffff15;color:#fff}
 .today-card .btn{background:#fff;color:#173247;border-color:#fff}
 html[data-theme="dark"] .btn:not(.primary):not(.soft):not(.danger):not(.google){background:#f7fafc;color:#173247;border-color:#d8e2e9}
