@@ -1,4 +1,4 @@
-import{initialize,isConfigured,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,listCalendarEvents,calendarConnected,user}from'./store.js?v=1.4';
+import{initialize,isConfigured,onUser,signIn,logOut,createRecord,listRecords,updateRecord,deleteRecord,createCalendarEvent,listCalendarEvents,calendarConnected,user}from'./store.js?v=1.5';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={page:'inicio',patients:[],services:[],psychometrics:[],loading:false};

@@ -26,6 +26,10 @@ export async function signIn(withCalendar=false){
   if(!auth)throw new Error('CONFIG_REQUIRED');
   const provider=new sdk.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
   if(withCalendar)provider.addScope('https://www.googleapis.com/auth/calendar.events');
+  if(!withCalendar){
+    await sdk.signInWithRedirect(auth,provider);
+    return null;
+  }
   try{
     const result=await sdk.signInWithPopup(auth,provider);
     if(withCalendar)currentToken=sdk.GoogleAuthProvider.credentialFromResult(result)?.accessToken||null;
